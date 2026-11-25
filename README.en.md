@@ -1,14 +1,12 @@
 # RsyncDeck for Windows
 
-[Download for Windows x64](https://github.com/ljdong-fy/RsyncDeck/releases/tag/v1.0.0) · [简体中文](README.md)
+[Download the Windows x64 installer](https://github.com/ljdong-fy/RsyncDeck/releases/tag/v1.0.0) · [简体中文](README.md)
 
 RsyncDeck is a graphical interface for rsync. Use it to sync folders or individual files between local drives, over SSH, or through an rsync module.
 
 ## Getting started
 
-**Installer**: If you downloaded `RsyncDeck-1.0.0-win-x64-setup.msi`, double-click it and launch RsyncDeck from the Start menu. Uninstall through Windows Installed apps; saved sessions are retained. The extraction steps below apply to the portable ZIP.
-
-1. Extract the full Windows x64 portable ZIP, keep its directory structure intact, and run `RsyncDeck.exe`. The .NET Desktop Runtime, rsync, OpenSSH, and required libraries are included.
+1. Open `RsyncDeck-1.0.0-win-x64-setup.msi`, choose an installation folder, and launch RsyncDeck from the Start menu. The .NET Desktop Runtime, rsync, and OpenSSH are included. To uninstall, open **Uninstall RsyncDeck** in the installation folder. Saved sessions are retained.
 2. New installations pick the bundled rsync automatically. Upgrades retain a valid custom rsync path; select **File → Use bundled rsync** to switch back. SSH connections still require non-interactive credentials and a verified host key. The included `ssh.exe` and `ssh-keygen.exe` are under `engine\usr\bin`; OpenSSH uses the Windows user's `.ssh` configuration.
 3. Enter the source and destination. For example, use `D:\Assets` and `user@server.example:/data/assets`. At least one side must be local. In single-file mode, the destination remains a folder.
 4. Select **Preview sync** to preview changes without writing to the destination. Use **Sync and verify** when ready. **Sync verified** means rsync succeeded and a read-only check found no remaining changes under the current sync options. This check computes checksums only when requested by the sync options. For a standalone check without writing to the destination, choose **File → Verify file contents**.
@@ -37,4 +35,4 @@ With **Basic options → Show transfer progress** on, **Sync and verify** runs a
 
 Choose SOCKS5 or HTTP CONNECT under **Connection & proxy**. Enter the address and port displayed by your proxy app (for example, `127.0.0.1:1080`), then save the session. The default is a direct connection. This setting requires the bundled rsync and applies to simulation, transfer, and verification for SSH sessions. It supports proxies without username/password authentication. It does not apply to local sync or rsync modules.
 
-When redistributing the portable ZIP, offer the companion `RsyncDeck-1.0.0-third-party-sources.zip` on the same download page. End users do not need to download that archive. See `THIRD-PARTY.md` for component provenance and versions.
+When redistributing the MSI installer, offer the companion `RsyncDeck-1.0.0-third-party-sources.zip` on the same download page. End users do not need to download that archive. See `THIRD-PARTY.md` for component provenance and versions.

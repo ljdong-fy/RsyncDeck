@@ -1,6 +1,6 @@
 # RsyncDeck
 
-[下载 Windows x64 便携版](https://github.com/ljdong-fy/RsyncDeck/releases/tag/v1.0.0) · [English](README.en.md)
+[下载 Windows x64 安装包](https://github.com/ljdong-fy/RsyncDeck/releases/tag/v1.0.0) · [English](README.en.md)
 
 RsyncDeck 是 Windows 上的 rsync 图形工具，用于把本地目录或文件同步到另一块磁盘、SSH 服务器或 rsync 模块，也支持从远端同步回本地。
 
@@ -8,9 +8,7 @@ RsyncDeck 是 Windows 上的 rsync 图形工具，用于把本地目录或文件
 
 ## 开始使用
 
-**安装版**：如果下载的是 `RsyncDeck-1.0.0-win-x64-setup.msi`，双击安装，然后从开始菜单打开 RsyncDeck。可在 Windows「已安装的应用」中卸载；卸载保留已保存的会话。下面的解压步骤适用于便携版。
-
-1. 解压 Windows x64 便携 ZIP 的全部文件，保留原目录结构，双击 `RsyncDeck.exe`。已附带 .NET Desktop Runtime、rsync、OpenSSH 和所需库，无需另装组件或手动找 rsync。
+1. 双击 `RsyncDeck-1.0.0-win-x64-setup.msi`，选择安装目录，然后从开始菜单打开 RsyncDeck。已内置 .NET Desktop Runtime、rsync 和 OpenSSH。卸载时可双击安装目录中的 **Uninstall RsyncDeck**，已保存的会话会保留。
 2. 新用户默认使用内置 rsync。升级时会保留有效的自选 rsync 路径；可从「文件 → 使用内置 rsync」切回。首次连接自己的 SSH 服务器时，仍需有效的登录凭据和已核对的主机公钥。本工具使用非交互 SSH；内置 OpenSSH 的 `ssh.exe` 和 `ssh-keygen.exe` 在 `engine\usr\bin`，沿用 Windows 用户目录下的 `.ssh` 配置。
 3. 填好来源、目标，可直接「同步预览」，也可输入名称后「保存会话」。例如 `D:\Assets` 到 `user@server.example:/data/assets`。至少一端须为本地路径。目录模式同步的是来源目录的内容；单文件模式的目标仍然是目录。
 4. 确认后点「同步并校验」。传输成功后，程序按本次同步选项自动进行只读复查；还有待处理的变更时会提示差异。未开启内容比较时，复查不会强制计算校验和。要检查同步规则可能跳过的内容差异，可选择「文件 → 校验文件内容」，此操作会读取两端文件且不修改目标。
@@ -50,4 +48,4 @@ RsyncDeck 是 Windows 上的 rsync 图形工具，用于把本地目录或文件
 
 在「连接与代理」选 SOCKS5 或 HTTP CONNECT，填本地代理软件显示的地址和端口（例如 `127.0.0.1:1080`；以实际显示为准），再保存会话。默认直连。此功能使用内置 rsync，适用于 `user@host:/path` 形式的 SSH 任务，模拟、传输和只读校验都经过同一个代理。只支持无需用户名和密码的代理；本地同步和 rsync 模块不走此代理。
 
-公开分发便携 ZIP 时，请在同一下载页提供配套 `RsyncDeck-1.0.0-third-party-sources.zip`。普通使用不需要下载源码包。组件出处和版本见 `THIRD-PARTY.md`。
+公开分发 MSI 安装包时，请在同一下载页提供配套 `RsyncDeck-1.0.0-third-party-sources.zip`。普通使用不需要下载源码包。组件出处和版本见 `THIRD-PARTY.md`。
