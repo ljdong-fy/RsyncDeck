@@ -19,41 +19,36 @@ function New-RoundedPath([float]$x, [float]$y, [float]$size, [float]$radius) {
     $path
 }
 
-function Draw-Arrow([Graphics]$canvas, [string]$color, [bool]$reverse) {
-    $state = $canvas.Save()
-    if ($reverse) { $canvas.TranslateTransform(256, 256); $canvas.RotateTransform(180) }
-    $pen = [Pen]::new((Get-Color $color), 16)
-    $pen.StartCap = $pen.EndCap = [LineCap]::Round
-    $pen.LineJoin = [LineJoin]::Round
-    $arrow = [GraphicsPath]::new()
-    $arrow.AddBezier(62, 110, 78, 65, 132, 52, 168, 80)
-    $arrow.AddLine(168, 80, 192, 104)
-    $head = [PointF[]]@([PointF]::new(154, 104), [PointF]::new(192, 104), [PointF]::new(192, 66))
-    $canvas.DrawPath($pen, $arrow)
-    $canvas.DrawLines($pen, $head)
-    $canvas.Restore($state)
-    $arrow.Dispose()
-    $pen.Dispose()
-}
-
 function New-Frame([int]$size) {
     $image = [Bitmap]::new($size, $size, [PixelFormat]::Format32bppArgb)
     $g = [Graphics]::FromImage($image)
     $g.SmoothingMode = [SmoothingMode]::AntiAlias
     $g.PixelOffsetMode = [PixelOffsetMode]::HighQuality
     $g.ScaleTransform($size / 256.0, $size / 256.0)
-    $shadow = New-RoundedPath 6 11 244 60
-    $tile = New-RoundedPath 6 5 244 60
-    $edge = New-RoundedPath 9 8 238 57
-    $shadowBrush = [SolidBrush]::new([Color]::FromArgb(125, 4, 12, 35))
-    $tileBrush = [LinearGradientBrush]::new([PointF]::new(34, 20), [PointF]::new(216, 242), (Get-Color '#203F8C'), (Get-Color '#0C173D'))
-    $edgePen = [Pen]::new([Color]::FromArgb(95, 142, 187, 255), 3)
-    $g.FillPath($shadowBrush, $shadow)
-    $g.FillPath($tileBrush, $tile)
-    if ($size -ge 32) { $g.DrawPath($edgePen, $edge) }
-    Draw-Arrow $g '#F2F8FF' $false
-    Draw-Arrow $g '#56F2D1' $true
-    foreach ($resource in @($edgePen, $tileBrush, $shadowBrush, $edge, $tile, $shadow, $g)) { $resource.Dispose() }
+    $tile = New-RoundedPath 7 7 242 55
+    $background = [LinearGradientBrush]::new([PointF]::new(18, 22), [PointF]::new(238, 234), (Get-Color '#126C69'), (Get-Color '#102A43'))
+    $g.FillPath($background, $tile)
+
+    $folder = [GraphicsPath]::new()
+    $folder.AddLine(48, 93, 48, 80)
+    $folder.AddBezier(48, 80, 48, 66, 48, 66, 63, 66)
+    $folder.AddLine(63, 66, 107, 66)
+    $folder.AddLine(107, 66, 128, 85)
+    $folder.AddLine(128, 85, 190, 85)
+    $folder.AddBezier(190, 85, 206, 85, 206, 85, 206, 101)
+    $folder.AddLine(206, 101, 206, 174)
+    $folder.AddBezier(206, 174, 206, 190, 206, 190, 190, 190)
+    $folder.AddLine(190, 190, 64, 190)
+    $folder.AddBezier(64, 190, 48, 190, 48, 190, 48, 174)
+    $folder.CloseFigure()
+    $paper = [SolidBrush]::new((Get-Color '#F2FFF9'))
+    $g.FillPath($paper, $folder)
+    $stroke = [Pen]::new((Get-Color '#13736A'), 15)
+    $stroke.StartCap = $stroke.EndCap = [LineCap]::Round
+    $stroke.LineJoin = [LineJoin]::Round
+    $g.DrawLines($stroke, [PointF[]]@([PointF]::new(91,130), [PointF]::new(160,130), [PointF]::new(145,115)))
+    $g.DrawLines($stroke, [PointF[]]@([PointF]::new(165,158), [PointF]::new(96,158), [PointF]::new(111,173)))
+    foreach ($resource in @($stroke, $paper, $folder, $background, $tile, $g)) { $resource.Dispose() }
     $image
 }
 

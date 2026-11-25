@@ -6,6 +6,8 @@ RsyncDeck is a graphical interface for rsync. Use it to sync folders or individu
 
 ## Getting started
 
+**Installer**: If you downloaded `RsyncDeck-1.0.0-win-x64-setup.msi`, double-click it and launch RsyncDeck from the Start menu. Uninstall through Windows Installed apps; saved sessions are retained. The extraction steps below apply to the portable ZIP.
+
 1. Extract the full Windows x64 portable ZIP, keep its directory structure intact, and run `RsyncDeck.exe`. The .NET Desktop Runtime, rsync, OpenSSH, and required libraries are included.
 2. New installations pick the bundled rsync automatically. Upgrades retain a valid custom rsync path; select **File → Use bundled rsync** to switch back. SSH connections still require non-interactive credentials and a verified host key. The included `ssh.exe` and `ssh-keygen.exe` are under `engine\usr\bin`; OpenSSH uses the Windows user's `.ssh` configuration.
 3. Enter the source and destination. For example, use `D:\Assets` and `user@server.example:/data/assets`. At least one side must be local. In single-file mode, the destination remains a folder.

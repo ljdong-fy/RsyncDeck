@@ -8,6 +8,8 @@ RsyncDeck 是 Windows 上的 rsync 图形工具，用于把本地目录或文件
 
 ## 开始使用
 
+**安装版**：如果下载的是 `RsyncDeck-1.0.0-win-x64-setup.msi`，双击安装，然后从开始菜单打开 RsyncDeck。可在 Windows「已安装的应用」中卸载；卸载保留已保存的会话。下面的解压步骤适用于便携版。
+
 1. 解压 Windows x64 便携 ZIP 的全部文件，保留原目录结构，双击 `RsyncDeck.exe`。已附带 .NET Desktop Runtime、rsync、OpenSSH 和所需库，无需另装组件或手动找 rsync。
 2. 新用户默认使用内置 rsync。升级时会保留有效的自选 rsync 路径；可从「文件 → 使用内置 rsync」切回。首次连接自己的 SSH 服务器时，仍需有效的登录凭据和已核对的主机公钥。本工具使用非交互 SSH；内置 OpenSSH 的 `ssh.exe` 和 `ssh-keygen.exe` 在 `engine\usr\bin`，沿用 Windows 用户目录下的 `.ssh` 配置。
 3. 填好来源、目标，可直接「同步预览」，也可输入名称后「保存会话」。例如 `D:\Assets` 到 `user@server.example:/data/assets`。至少一端须为本地路径。目录模式同步的是来源目录的内容；单文件模式的目标仍然是目录。
