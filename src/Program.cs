@@ -612,7 +612,7 @@ sealed class MainWindow : Form
             keepTimes, Flag("perm"), Flag("owner"), Flag("group"),
             mirror, Flag("onefs"), Flag("verbose"), progress,
             Flag("exist"), Flag("size"), Flag("skipnew"), windowsTimes]));
-        optionHints.SetToolTip(uploadChecksum, L.T("预览和同步时，用文件内容的校验和判断是否需要传输。此选项不影响传输后的内容校验。"));
+        optionHints.SetToolTip(uploadChecksum, L.T("预览、同步和传后复查时，使用校验和比较文件内容。大目录可能耗时较长。"));
         var advanced = BasicPage(L.T("高级选项"), [
             uploadChecksum, Flag("compr"), Flag("dev"), Flag("update"),
             Flag("keepart"), Flag("mapuser"), Flag("symlink"), Flag("hardlink"),
@@ -954,13 +954,14 @@ sealed class MainWindow : Form
                 int code = await Task.Run(() => Engine.RunHook(opt.After, Log, token));
                 if (code != 0) hookFailure = code;
             }
-            SetPhase(L.T("正在校验文件内容")); Log(phase);
-            var check = await Run(true, true, p.Mirror, verifyContent: true);
+            bool verifyContents = mode == Mode.Verify;
+            SetPhase(L.T(verifyContents ? "正在校验文件内容" : "正在复查同步结果")); Log(phase);
+            var check = await Run(true, verifyContents || task.UploadChecksum, p.Mirror, verifyContent: verifyContents);
             token.ThrowIfCancellationRequested();
             if (check.Failed) Finish(L.T("校验执行异常"), L.F("rsync 退出码 {0}，诊断 {1} 行。请查看日志。", check.Code, check.Issues), Color.Firebrick);
             else if (!check.Clean) Finish(L.T("校验发现差异"), L.F("文件差异 {0} · 其他差异 {1} · 目标端多余项 {2}。", check.Files, check.Other, check.Extra) + L.T("请查看日志。"), Color.DarkGoldenrod);
-            else if (hookFailure != 0) Finish(L.T("内容校验通过，命令失败"), L.F("命令退出码 {0}，请查看日志。", hookFailure), Color.DarkGoldenrod);
-            else Finish(mode == Mode.Sync ? L.T("同步完成，校验通过") : L.T("内容校验通过"), L.T("校验范围内未发现差异。"), Color.DarkGreen);
+            else if (hookFailure != 0) Finish(L.T("同步复查通过，命令失败"), L.F("命令退出码 {0}，请查看日志。", hookFailure), Color.DarkGoldenrod);
+            else Finish(mode == Mode.Sync ? L.T("同步完成，校验通过") : L.T("内容校验通过"), L.T(verifyContents ? "校验范围内未发现差异。" : "按当前同步选项，未发现待处理的变更。"), Color.DarkGreen);
         }
         catch (OperationCanceledException) { transferInterrupted = !transferSucceeded; Finish(L.T("已取消"), L.T("已传输的文件不会回滚。可以重新同步，或从「文件」菜单校验。"), ForeColor); }
         catch (Exception ex) { transferInterrupted = !transferSucceeded; AddLine(ex.ToString()); Finish(L.T("任务未完成"), ex.Message, Color.Firebrick); }

@@ -1,4 +1,4 @@
-# RsyncDeck 1.0.0 for Windows
+# RsyncDeck for Windows
 
 [Download for Windows x64](https://github.com/ljdong-fy/RsyncDeck/releases/tag/v1.0.0) · [简体中文](README.md)
 
@@ -9,7 +9,7 @@ RsyncDeck is a graphical interface for rsync. Use it to sync folders or individu
 1. Extract the full Windows x64 portable ZIP, keep its directory structure intact, and run `RsyncDeck.exe`. The .NET Desktop Runtime, rsync, OpenSSH, and required libraries are included.
 2. New installations pick the bundled rsync automatically. Upgrades retain a valid custom rsync path; select **File → Use bundled rsync** to switch back. SSH connections still require non-interactive credentials and a verified host key. The included `ssh.exe` and `ssh-keygen.exe` are under `engine\usr\bin`; OpenSSH uses the Windows user's `.ssh` configuration.
 3. Enter the source and destination. For example, use `D:\Assets` and `user@server.example:/data/assets`. At least one side must be local. In single-file mode, the destination remains a folder.
-4. Select **Preview sync** to preview changes without writing to the destination. Use **Sync and verify** when ready. **Sync verified** means rsync succeeded and the subsequent read-only content comparison found no differences within scope. For a standalone check without writing to the destination, choose **File → Verify file contents**.
+4. Select **Preview sync** to preview changes without writing to the destination. Use **Sync and verify** when ready. **Sync verified** means rsync succeeded and a read-only check found no remaining changes under the current sync options. This check computes checksums only when requested by the sync options. For a standalone check without writing to the destination, choose **File → Verify file contents**.
 
 RsyncDeck first follows the Windows display language: Chinese locales default to Simplified Chinese; other locales default to English. Use **Language → English**, **简体中文**, or **Use system language** to change it. Your preference is saved, and any edits currently in the form are kept when the language changes.
 
@@ -21,7 +21,7 @@ RsyncDeck first follows the Windows display language: Chinese locales default to
 
 - **Basic options** include timestamp and permission preservation, file skip rules, progress, and mirror deletion. Deletion is previewed and requires confirmation.
 - **Advanced options** cover checksums, compression, backup, partial files, SSH port, and additional rsync options. For example: `--exclude=*.tmp --bwlimit=4096 --stats`. Include and exclude rules also apply to verification. Run mirror deletion and backup separately.
-- **Extra options** includes single-file mode and local Windows CMD commands. Pre/post-sync commands run only when enabled for an actual sync, never during simulation or read-only verification. The post-sync command runs after transfer and before verification.
+- **Extra options** includes single-file mode and local Windows CMD commands. Pre/post-sync commands run only when enabled for an actual sync, never during simulation or read-only verification. The post-sync command runs after transfer and before the post-sync check.
 - Choose **Sessions → Migrate local Grsync sessions** to copy the current Windows user’s Grsync sessions, paths, settings, extra rsync options, and local commands with their original enabled states. Existing sessions with the same name are kept. Migration runs no syncs or commands. Mirror deletions still require preview and confirmation.
 - Use **Import…** for other Grsync `.ini` or RsyncDeck JSON files. This keeps command text but disables command execution and deletion. Exports contain paths and rsync options and omit local commands.
 
