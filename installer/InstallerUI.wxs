@@ -1,0 +1,52 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <UI Id="RsyncDeckInstallerUI">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="UserExit" />
+      <DialogRef Id="MaintenanceWelcomeDlg" />
+      <DialogRef Id="MaintenanceTypeDlg" />
+      <DialogRef Id="VerifyReadyDlg" />
+      <DialogRef Id="BrowseDlg" />
+      <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+      <Dialog Id="RsyncDeckWelcome" Width="370" Height="218" Title="RsyncDeck Setup">
+        <Control Id="Title" Type="Text" X="20" Y="18" Width="330" Height="22" Text="{\WixUI_Font_Bigger}Install RsyncDeck" />
+        <Control Id="Description" Type="Text" X="20" Y="55" Width="330" Height="56" Text="Setup installs RsyncDeck for your Windows account and adds it to the Start menu." />
+        <Control Id="LocationLabel" Type="Text" X="20" Y="108" Width="330" Height="15" Text="Install location" />
+        <Control Id="Location" Type="PathEdit" X="20" Y="127" Width="255" Height="18" Property="WIXUI_INSTALLDIR" Indirect="yes" />
+        <Control Id="Browse" Type="PushButton" X="282" Y="125" Width="72" Height="22" Text="Browse">
+          <Publish Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1" />
+          <Publish Event="SpawnDialog" Value="BrowseDlg" Order="2" />
+        </Control>
+        <Control Id="Install" Type="PushButton" X="208" Y="182" Width="76" Height="22" Default="yes" Text="Install">
+          <Publish Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1" />
+          <Publish Event="EndDialog" Value="Return" Order="2" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="290" Y="182" Width="65" Height="22" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+      </Dialog>
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" />
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999" />
+      <InstallUISequence>
+        <Show Dialog="RsyncDeckWelcome" Before="ProgressDlg" Condition="NOT Installed AND NOT RESUME AND NOT Preselected" />
+      </InstallUISequence>
+      <Property Id="ARPNOMODIFY" Value="1" />
+      <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="Open RsyncDeck from the Windows Start menu." />
+    </UI>
+    <UIRef Id="WixUI_Common" />
+  </Fragment>
+</Wix>

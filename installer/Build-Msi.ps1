@@ -45,12 +45,19 @@ function Emit-Directory([string]$path, [string]$directoryId) {
 Add-Line '<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">'
 Add-Line "<Package Name='RsyncDeck' Manufacturer='RsyncDeck' Version='$Version' UpgradeCode='9C0DFB8C-8B5F-431C-8A99-1AD7D6E3BD55' Scope='perUser' Language='1033'>"
 Add-Line '<MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of RsyncDeck is already installed." />'
+Add-Line '<UIRef Id="RsyncDeckInstallerUI" />'
 Add-Line '<MediaTemplate EmbedCab="yes" />'
 Add-Line "<Icon Id='RsyncDeck.ico' SourceFile='$(Escape $icon)' />"
 Add-Line '<Property Id="ARPPRODUCTICON" Value="RsyncDeck.ico" />'
 Add-Line '<Property Id="ARPURLINFOABOUT" Value="https://github.com/ljdong-fy/RsyncDeck" />'
 Add-Line '<StandardDirectory Id="LocalAppDataFolder"><Directory Id="INSTALLFOLDER" Name="RsyncDeck App">'
 Emit-Directory $portable 'INSTALLFOLDER'
+Add-Line @'
+<Component Id='UninstallShortcut' Guid='*'>
+  <Shortcut Id='RsyncDeckUninstall' Name='Uninstall RsyncDeck' Target='[SystemFolder]msiexec.exe' Arguments='/x [ProductCode]' Icon='RsyncDeck.ico' />
+  <RegistryValue Root='HKCU' Key='Software\RsyncDeck\Installer' Name='UninstallShortcut' Type='integer' Value='1' KeyPath='yes' />
+</Component>
+'@
 Add-Line '</Directory></StandardDirectory>'
 Add-Line @"
 <StandardDirectory Id='ProgramMenuFolder'>
@@ -62,6 +69,7 @@ Add-Line @"
 <Feature Id='Application' Title='RsyncDeck' Level='1'>
   <ComponentGroupRef Id='ApplicationComponents' />
   <ComponentRef Id='StartMenuShortcut' />
+  <ComponentRef Id='UninstallShortcut' />
 </Feature>
 <ComponentGroup Id='ApplicationComponents'>
 "@
@@ -72,6 +80,6 @@ Add-Line '</ComponentGroup></Package></Wix>'
 $source = Join-Path ([IO.Path]::GetTempPath()) ('RsyncDeck-' + [guid]::NewGuid() + '.wxs')
 try {
     [IO.File]::WriteAllText($source, $xml.ToString())
-    & $Wix build -arch x64 -pdbtype none -o $OutputPath $source
+    & $Wix build -arch x64 -culture en-US -pdbtype none -ext WixToolset.UI.wixext -o $OutputPath $source (Join-Path $PSScriptRoot 'InstallerUI.wxs')
     if ($LASTEXITCODE) { throw "WiX build failed: $LASTEXITCODE" }
 } finally { Remove-Item -LiteralPath $source -ErrorAction SilentlyContinue }

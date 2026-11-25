@@ -15,7 +15,8 @@ static class Program
         {
             if (args.Length >= 3) L.SetSession(args[2]);
             using var window = new MainWindow(loadSettings: false);
-            window.RenderUi(args[1], args.Length == 4 && args[3].Contains("minimum"), args.Length == 4 && args[3].Contains("progress"));
+            var scenario = args.Length == 4 ? args[3] : "";
+            window.RenderUi(args[1], scenario.Contains("minimum"), scenario.Contains("progress"), scenario.Contains("preview-changes") ? new Engine.Result(0, 3, 1, 2, 0) : scenario.Contains("preview-clean") ? new Engine.Result(0, 0, 0, 0, 0) : null);
             return 0;
         }
         if (args.Length == 2 && args[0] == "--test-language-ui") return TestLanguageUi(args[1]);
@@ -414,7 +415,7 @@ sealed class MainWindow : Form
         RefreshTasks(settings.StartupTask);
     }
 
-    internal void RenderUi(string folder, bool minimum, bool showProgress)
+    internal void RenderUi(string folder, bool minimum, bool showProgress, Engine.Result? preview = null)
     {
         Directory.CreateDirectory(folder);
         PrepareOffscreen();
@@ -430,6 +431,7 @@ sealed class MainWindow : Form
             transferProgress.Observe("        230 46% 7kB/s 0:00:01");
             transferPanel.Visible = true; activity.Visible = false; PaintTransferProgress();
         }
+        if (preview != null) FinishPreview(preview);
         var bounds = new List<string>();
         for (int i = 0; i < optionsTabs.TabCount; i++)
         {
@@ -871,6 +873,13 @@ sealed class MainWindow : Form
         statusBand.BackColor = color == Color.DarkGreen ? StatusSuccess : color == Color.DarkGoldenrod ? StatusAttention
             : color == Color.Firebrick ? StatusError : StatusNeutral;
     }
+    private void FinishPreview(Engine.Result result)
+    {
+        if (result.Clean)
+            Finish(L.T("无需同步"), L.T("按当前选项未发现变更，目标端未修改。"), Color.DarkGreen);
+        else
+            Finish(L.T("发现待同步变更"), L.F("待传文件 {0} · 其他变更 {1} · 待删除 {2}。", result.Files, result.Other, result.Extra) + L.T(" 未修改目标。"), Color.DarkGoldenrod);
+    }
     private enum Mode { Sync, Preview, Verify }
     private async Task Execute(Mode mode)
     {
@@ -915,7 +924,6 @@ sealed class MainWindow : Form
             int? maxDeletes = null;
             Task<Engine.Result> Run(bool dry, bool checksum, bool delete, bool verifyContent = false, bool plan = false, Action<string>? observe = null)
                 => Task.Run(() => Engine.Run(job, dry, checksum, delete, p.WindowsTimes, p.Extra, dry ? Log : UploadLog, token, maxDeletes, opt, verifyContent, plan, observe));
-            string Describe(Engine.Result r) => L.F("待传文件 {0} · 其他变更 {1} · 待删除 {2}。", r.Files, r.Other, r.Extra);
             Engine.Result? transferPlan = null;
             if (mode == Mode.Preview || (mode == Mode.Sync && (removeExtras || opt.Progress)))
             {
@@ -923,7 +931,7 @@ sealed class MainWindow : Form
                 var preview = await Run(true, task.UploadChecksum, removeExtras, plan: mode == Mode.Sync && opt.Progress);
                 token.ThrowIfCancellationRequested();
                 if (preview.Failed) { Finish(L.T("预览失败"), L.F("rsync 退出码 {0}，诊断 {1} 行。请查看日志。", preview.Code, preview.Issues), Color.Firebrick); return; }
-                if (mode == Mode.Preview) { Finish(L.T("预览完成"), Describe(preview) + L.T("未修改目标。"), Color.DarkGreen); return; }
+                if (mode == Mode.Preview) { FinishPreview(preview); return; }
                 transferPlan = preview;
                 if (removeExtras && preview.Extra > 0 && MessageBox.Show(this, L.F("目标：{0}\n预览发现 {1} 个待删除项目。\n确认执行镜像同步？", p.Target, preview.Extra), Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes)
                 { Finish(L.T("已取消"), L.T("镜像预览未修改目标。"), ForeColor); return; }
