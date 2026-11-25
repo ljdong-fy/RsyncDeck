@@ -1,0 +1,7 @@
+src/bin/
+src/obj/
+
+# Local tools and packaged builds
+/app/
+/release/
+/ResourceSync.exe
