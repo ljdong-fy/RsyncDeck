@@ -19,17 +19,17 @@ RsyncDeck first follows the Windows display language: Chinese locales default to
 - **Reset options** restores the current form’s sync options while retaining the session name, source, and destination. Click **Save session** to persist the changes.
 - Select **Open log folder** to find the latest job log. A new job overwrites `latest.log`. The app clears it on exit, or at the next start after an unexpected shutdown.
 
-- **Basic options** include timestamp and permission preservation, file skip rules, progress, and mirror deletion. Deletion is previewed and requires confirmation.
+- **Basic options** include timestamp and permission preservation, file skip rules, progress, and mirror deletion. When mirror deletion is enabled, sync deletes destination-only items automatically. Use Preview sync to review planned deletions.
 - **Advanced options** cover checksums, compression, backup, partial files, SSH port, and additional rsync options. For example: `--exclude=*.tmp --bwlimit=4096 --stats`. Include and exclude rules also apply to verification. Run mirror deletion and backup separately.
 - **Extra options** includes single-file mode and local Windows CMD commands. Pre/post-sync commands run only when enabled for an actual sync, never during simulation or read-only verification. The post-sync command runs after transfer and before the post-sync check.
-- Choose **Sessions → Migrate local Grsync sessions** to copy the current Windows user’s Grsync sessions, paths, settings, extra rsync options, and local commands with their original enabled states. Existing sessions with the same name are kept. Migration runs no syncs or commands. Mirror deletions still require preview and confirmation.
+- Choose **Sessions → Migrate local Grsync sessions** to copy the current Windows user’s Grsync sessions, paths, settings, extra rsync options, and local commands with their original enabled states. Existing sessions with the same name are kept. Migration runs no syncs or commands.
 - Use **Import…** for other Grsync `.ini` or RsyncDeck JSON files. This keeps command text but disables command execution and deletion. Exports contain paths and rsync options and omit local commands.
 
 Settings are stored in `%LOCALAPPDATA%\RsyncDeck`; the temporary log is stored in `%TEMP%\RsyncDeck\logs`. The app cleans up automatically generated logs from earlier versions. Canceling stops the job but does not roll back files already transferred. Raw rsync messages or Windows dialogs may use their own language.
 
 ## Transfer progress
 
-With **Basic options → Show transfer progress** on, **Sync and verify** runs a read-only scan before displaying per-file and overall transfer progress. The overall percentage estimates progress from expected file sizes and falls back to an unknown total when the estimate becomes unreliable. The transfer can only show 100% after a successful rsync exit; content verification is a separate stage. Simulations and read-only verification show their current stage and final result. Turning off transfer progress skips the scan for estimating totals; mirror deletion still requires a preview.
+With **Basic options → Show transfer progress** on, **Sync and verify** runs a read-only scan before displaying per-file and overall transfer progress. The overall percentage estimates progress from expected file sizes and falls back to an unknown total when the estimate becomes unreliable. The transfer can only show 100% after a successful rsync exit; content verification is a separate stage. Simulations and read-only verification show their current stage and final result. Turning off transfer progress skips the scan for estimating totals; mirror deletion still scans first to cap the number of deletions.
 
 ## Connection & proxy
 

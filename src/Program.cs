@@ -718,7 +718,11 @@ sealed class MainWindow : Form
     private void RefreshTasks(SavedTask? task)
     {
         updatingTasks = true;
-        try { tasks.Items.Clear(); tasks.Items.AddRange(settings.Tasks.Cast<object>().ToArray()); }
+        try
+        {
+            tasks.Items.Clear();
+            tasks.Items.AddRange(settings.Tasks.OrderBy(t => t.Profile.Name, StringComparer.CurrentCultureIgnoreCase).ToArray());
+        }
         finally { updatingTasks = false; }
         ShowTask(task);
         ShowStartupHint();
@@ -880,6 +884,30 @@ sealed class MainWindow : Form
         else
             Finish(L.T("发现待同步变更"), L.F("待传文件 {0} · 其他变更 {1} · 待删除 {2}。", result.Files, result.Other, result.Extra) + L.T(" 未修改目标。"), Color.DarkGoldenrod);
     }
+    private static string FormatSyncLine(string line, bool dry, bool tracked)
+    {
+        if (line.Length < 18 || !line.StartsWith("SYNC:", StringComparison.Ordinal) || line[16] != '|') return line;
+        string name;
+        bool file = (line[5] is '<' or '>') && line[6] == 'f';
+        if (tracked)
+        {
+            int separator = line.IndexOf('|', 17);
+            if (separator < 18 || separator == line.Length - 1) return line;
+            name = line[(separator + 1)..];
+        }
+        else if (!dry)
+        {
+            int separator = line.LastIndexOf('|');
+            if (separator <= 17) return line;
+            name = line[17..separator];
+        }
+        else name = line[17..];
+        string action = line.AsSpan(5, 11).TrimEnd().SequenceEqual("*deleting")
+            ? (dry ? "待删除" : "删除")
+            : file ? (dry ? "待传输" : "传输") : (dry ? "待更新" : "更新");
+        return $"{L.T(action)}: {name}";
+    }
+
     private enum Mode { Sync, Preview, Verify }
     private async Task Execute(Mode mode)
     {
@@ -904,7 +932,6 @@ sealed class MainWindow : Form
             var logs = TemporaryLogs.Desktop;
             using var writer = logs.OpenLatest();
             void Log(string line) { writer.WriteLine(line); AddLine(line); }
-            void UploadLog(string line) { if (line.StartsWith("SYNC:<f") || line.StartsWith("SYNC:>f")) Interlocked.Increment(ref transferred); Log(line); }
             string logLocation = writer.IsAvailable ? $" | {logs.LatestPath}" : "";
             Log($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz} | {p.Name}{logLocation}");
             if (!writer.IsAvailable) AddLine(L.T("无法写入临时日志；仍可在此窗口查看输出。"));
@@ -923,18 +950,22 @@ sealed class MainWindow : Form
             if (hasBefore) job = await Task.Run(() => Engine.Validate(p, rsync, true, task.SshPort, token, opt.SingleFile, opt.Proxy));
             int? maxDeletes = null;
             Task<Engine.Result> Run(bool dry, bool checksum, bool delete, bool verifyContent = false, bool plan = false, Action<string>? observe = null)
-                => Task.Run(() => Engine.Run(job, dry, checksum, delete, p.WindowsTimes, p.Extra, dry ? Log : UploadLog, token, maxDeletes, opt, verifyContent, plan, observe));
+                => Task.Run(() => Engine.Run(job, dry, checksum, delete, p.WindowsTimes, p.Extra, line =>
+                {
+                    if (!dry && (line.StartsWith("SYNC:<f", StringComparison.Ordinal) || line.StartsWith("SYNC:>f", StringComparison.Ordinal)))
+                        Interlocked.Increment(ref transferred);
+                    writer.WriteLine(line);
+                    AddLine(FormatSyncLine(line, dry, plan || observe != null));
+                }, token, maxDeletes, opt, verifyContent, plan, observe));
             Engine.Result? transferPlan = null;
             if (mode == Mode.Preview || (mode == Mode.Sync && (removeExtras || opt.Progress)))
             {
-                SetPhase(mode == Mode.Sync && !removeExtras ? L.T("正在扫描待传文件") : L.T("同步预览")); Log(phase);
+                SetPhase(mode == Mode.Sync ? L.T(removeExtras ? "正在检查待同步变更" : "正在扫描待传文件") : L.T("同步预览")); Log(phase);
                 var preview = await Run(true, task.UploadChecksum, removeExtras, plan: mode == Mode.Sync && opt.Progress);
                 token.ThrowIfCancellationRequested();
                 if (preview.Failed) { Finish(L.T("预览失败"), L.F("rsync 退出码 {0}，诊断 {1} 行。请查看日志。", preview.Code, preview.Issues), Color.Firebrick); return; }
                 if (mode == Mode.Preview) { FinishPreview(preview); return; }
                 transferPlan = preview;
-                if (removeExtras && preview.Extra > 0 && MessageBox.Show(this, L.F("目标：{0}\n预览发现 {1} 个待删除项目。\n确认执行镜像同步？", p.Target, preview.Extra), Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes)
-                { Finish(L.T("已取消"), L.T("镜像预览未修改目标。"), ForeColor); return; }
                 if (removeExtras) maxDeletes = preview.Extra;
                 if (removeExtras && preview.Extra == 0) { removeExtras = false; Log(L.T("预览没有待删除项目；本次同步不启用删除。")); }
             }
